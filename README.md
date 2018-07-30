@@ -9,4 +9,4 @@ demo has been completed.
 
 [![Binder](https://mybinder.org/badge.svg)](https://mybinder.org/v2/gh/augeas/NeverMindTheMolluscs/master?filepath=oliva_porphyria.ipynb)
 
-!(https://github.com/augeas/NeverMindTheMolluscs/raw/master/img/oliva3.png)
+![oliva simulation](https://github.com/augeas/NeverMindTheMolluscs/raw/master/img/oliva3.png)
