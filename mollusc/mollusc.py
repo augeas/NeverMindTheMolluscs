@@ -39,13 +39,16 @@ class Mollusc(MolluscMixin, object):
         args = filter(lambda k: len(k)==2 and k.lower().startswith(linitial), kwargs.keys())
         return np.array([[kwargs[k] for k in sorted(args)[0:self.num_vars]]]).T
     
+
+    def __init__(self, width=640, **kwargs):
+        self.__initialize__(width, **kwargs)
+
     
-    def __init__(self,width=640, **kwargs):
-        """
-        """
+    def __initialize__(self, width=640, **kwargs):
         self.width = width
+        self.pars = kwargs
         
-        self.num_vars = kwargs['kn']
+        self.num_vars = kwargs.get('kn', 0)
         self.title = kwargs.get('title')
         
         self.diff_coeffs = self.argfilter('d', **kwargs)
@@ -55,8 +58,11 @@ class Mollusc(MolluscMixin, object):
         self.coupling = self.argfilter('c', **kwargs)
         self.init_conc = self.argfilter('a', **kwargs)
         self.gen_conc = self.argfilter('g', **kwargs)
-
-        self.activator_saturation = self.saturation[0]
+        
+        if len(self.saturation):
+            self.activator_saturation = self.saturation[0]
+        else:
+            self.activator_saturation = 0
 
         self.substrate = np.ones(width)
 
@@ -64,46 +70,67 @@ class Mollusc(MolluscMixin, object):
 
         eq_methods = {method:getattr(self, method)
             for method in dir(self) if method.startswith('eq_')}
-
-        self.eq = eq_methods['eq_'+str(kwargs['ke'])]
+                 
+        self.eq = eq_methods.get('eq_'+str(kwargs.get('ke')))
         
-        self.skip = kwargs['kp']
+        self.skip = kwargs.get('kp', 1)
         
         self.perturb = kwargs.get('kr', 2) / 100.0
-        self.fluctuations = self.fluctuate()   
-        self.s = self.decay_rates[0] * self.fluctuate()
+        self.fluctuations = self.fluctuate()
+        
+        if len(self.decay_rates):
+            self.s = self.decay_rates[0] * self.fluctuate()
+        else:
+            self.s = 0
     
         self.old = 0
         self.new = 1
         
         self.condition_pars = [kwargs.get('k'+str(i),0) for i in range(1,5)]
         
-        self.cells = np.zeros((2,self.num_vars,self.width))
-        self.cells[0,:,:] = self.gen_conc
+        self.cells = np.zeros((2,self.num_vars, self.width))
+        
+        if len(self.gen_conc):
+            self.cells[0,:,:] = self.gen_conc
 
-        self.concentrations = None
         
-        initial_conditions =  kwargs.get('ki', 3)
+        if len(self.init_conc):
+            initial_conditions =  kwargs.get('ki', 3)
         
-        if initial_conditions == 1:
-            self.cells[self.old,:,0] = self.init_conc.T
-        elif initial_conditions == 2:
-            self.cells[self.old,:,0] = self.init_conc.T
-            self.cells[self.old,:,-1] = self.init_conc.T
-        elif initial_conditions == 6:
-            selected = np.random.random((self.width,)) > 1 / 20
-            self.cells[self.old,:,selected] = self.init_conc.T
-        else:
-            self.cells[self.old,:,self.width//2] = self.init_conc.T
+            if initial_conditions == 1:
+                self.cells[self.old,:,0] = self.init_conc.T
+            elif initial_conditions == 2:
+                self.cells[self.old,:,0] = self.init_conc.T
+                self.cells[self.old,:,-1] = self.init_conc.T
+            elif initial_conditions == 6:
+                selected = np.random.random((self.width,)) > 1 / 20
+                self.cells[self.old,:,selected] = self.init_conc.T
+            else:
+                self.cells[self.old,:,self.width//2] = self.init_conc.T
     
+        self.concentrations = None
+
 
     def __getitem__(self, key):
-        '''Indexing a Mollusc object accesess the concentrations array.'''
-        if self.concentrations is None:
-            raise IndexError()
+        '''Indexing a Mollusc object accesess the concentrations array if the
+        key is an int, tuple or slice, otherwise the parameters dict is
+        referenced.'''
+        if key.__class__ in (int, tuple, slice):
+            if self.concentrations is None:
+                raise IndexError()
+            else:
+                return self.concentrations.__getitem__(key)
         else:
-            return self.concentrations.__getitem__(key)
+            return self.pars.__getitem__(key)
 
+
+    def __setitem__(self, key, item):
+        if key.__class__ == int:
+            self.concentrations.__setitem__(key, item)
+        else:
+            self.pars[key] = item
+            self.__initialize__(width=self.width, **self.pars)
+    
 
     def __str__(self):
         return self.title.strip()
