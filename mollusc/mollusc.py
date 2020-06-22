@@ -98,6 +98,7 @@ class Mollusc(MolluscMixin, object):
     
 
     def __getitem__(self, key):
+        '''Indexing a Mollusc object accesess the concentrations array.'''
         if self.concentrations is None:
             raise IndexError()
         else:
