@@ -8,7 +8,16 @@ Although an e-book is still [available from Springer](https://www.springer.com/g
 
 Here, the activator-inhibitor diffusion simulations are implemented in vectorized Numpy.
 
+Each example in the book has a reference number. To display a simulation in a Jupyter notebook:
 
+```python
+from IPython import display
+from mollusc.examples import MolluscExample
+
+lioconcha_h = MolluscExample(88)
+# The red, greem anf blue channels correspond to substances 0, 1 and 5:
+display.Image(data=lioconcha_h.render(substances=(0,1,5)))
+```
 
 ### Simulation 88: [Lioconcha Hieroglyphica](https://en.wikipedia.org/wiki/Lioconcha_hieroglyphica)
 
