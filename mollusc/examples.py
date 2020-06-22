@@ -16,6 +16,6 @@ sp_pars = {par['ref']: par for par in
 
 class MolluscExample(Mollusc, object):
     
-    def __init__(self, ref):
-        super().__init__(**sp_pars[ref])
+    def __init__(self, ref, width=640):
+        super().__init__(width=width, **sp_pars[ref])
         

@@ -174,7 +174,7 @@ class Mollusc(MolluscMixin, object):
         
         width, _, height = self.concentrations.shape
         
-        image = np.zeros(shape=(height, width, 3))
+        image = np.zeros(shape=(width, height, 3))
 
         if not substances:
             substances = tuple(range(min(self.num_vars, 3)))
